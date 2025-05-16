@@ -3,6 +3,5 @@
 /server/battle-socket/obj
 /server/battles
 /server/battle-socket/appsettings*
-*.csproj
 *.sln
 .vscode
