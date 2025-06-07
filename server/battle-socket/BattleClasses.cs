@@ -1,35 +1,35 @@
-
-
-using System.Net.WebSockets;
 using static HelperFunctions;
 
 public class Player {
+    public long id;
     public int level;
     public int xp;
-    public required string name;
+    public string name;
     public int maxSp;
     public int maxHp;
     public int xpForLevelUp;
     public int money;
-    public required Dictionary<string, Fighter> fighters;
-    public required Dictionary<string, Item> inventory;
-    public required Fighter selectedFighter;
+    public Dictionary<string, Fighter> fighters;
+    public  Dictionary<string, Item> inventory;
+    public  Fighter selectedFighter;
     public int sp;
     public int hp;
 
-    /* public Player(int lvl, int xpNumber, int maxSpNumber, int maxHpNumber, int xpForLevelUpNumber, int heldMoney, List<Fighter> ownedFighters, Dictionary<string, Item> ownedItems, Fighter selected, int spNumber, int hpNumber) {
-         level = lvl;
-         xp = xpNumber;
-         maxSp = maxSpNumber;
-         maxHp = maxHpNumber;
-         xpForLevelUp = xpForLevelUpNumber;
-         money = heldMoney;
-         fighters = ownedFighters;
-         inventory = ownedItems;
-         selectedFighter = selected;
-         sp = spNumber;
-         hp = hpNumber;
-     }*/
+    public Player(long playerId, string username, int lvl, int xpNumber, int maxSpNumber, int maxHpNumber, int xpForLevelUpNumber, int heldMoney, Dictionary<string, Fighter> ownedFighters, Dictionary<string, Item> ownedItems, Fighter selected, int spNumber, int hpNumber) {
+        id = playerId;
+        name = username;
+        level = lvl;
+        xp = xpNumber;
+        maxSp = maxSpNumber;
+        maxHp = maxHpNumber;
+        xpForLevelUp = xpForLevelUpNumber;
+        money = heldMoney;
+        fighters = ownedFighters;
+        inventory = ownedItems;
+        selectedFighter = selected;
+        sp = spNumber;
+        hp = hpNumber;
+    }
 
     public string ToLevelUp {
         get => xp >= xpForLevelUp ? "Can level up!" : $"{xpForLevelUp - xp} XP until level up";
@@ -93,6 +93,7 @@ public class Buffs : IEnumerable<Buffs.StatEffects> {
 
 public class Fighter {
     public required string name;
+    public required string key;
     public string? image;
     public required string type;
     public required int level;

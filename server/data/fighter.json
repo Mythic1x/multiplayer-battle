@@ -1,0 +1,165 @@
+{
+  "fireGuy": {
+    "name": "FireGuy",
+    "key": "fireGuy",
+    "image": null,
+    "type": "fire",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 5,
+    "dexterity": 5,
+    "magic": 10,
+    "luck": 5,
+    "skills": [
+      "flame",
+      "strike"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": []
+  },
+  "waterGuy": {
+    "name": "WaterGuy",
+    "key": "waterGuy",
+    "image": null,
+    "type": "water",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 5,
+    "dexterity": 5,
+    "magic": 10,
+    "luck": 5,
+    "skills": [
+      "splash",
+      "strike"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": []
+  },
+  "iceGuy": {
+    "name": "IceGuy",
+    "key": "iceGuy",
+    "image": null,
+    "type": "ice",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 5,
+    "dexterity": 5,
+    "magic": 10,
+    "luck": 5,
+    "skills": [
+      "snowball",
+      "strike"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": []
+  },
+  "physicalGuy": {
+    "name": "PhysicalGuy",
+    "key": "physicalGuy",
+    "image": null,
+    "type": "strength",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 7,
+    "dexterity": 8,
+    "magic": 3,
+    "luck": 5,
+    "skills": [
+      "strike"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": []
+  },
+  "lightningGuy": {
+    "name": "LightningGuy",
+    "key": "lightningGuy",
+    "image": null,
+    "type": "lightning",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 5,
+    "dexterity": 5,
+    "magic": 10,
+    "luck": 5,
+    "skills": [
+      "lightning",
+      "strike"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": []
+  },
+  "trashGuy": {
+    "name": "TrashGuy",
+    "key": "trashGuy",
+    "image": null,
+    "type": "strength",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 1,
+    "dexterity": 0,
+    "magic": 1,
+    "luck": 0,
+    "skills": [
+      "strike",
+      "attackUp"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": [
+      "heal"
+    ]
+  },
+  "supportGuy": {
+    "name": "SupportGuy",
+    "key": "supportGuy",
+    "image": null,
+    "type": "water",
+    "level": 1,
+    "xp": 0,
+    "xpForLevelUp": 100,
+    "strength": 1,
+    "dexterity": 5,
+    "magic": 10,
+    "luck": 5,
+    "skills": [
+      "heal",
+      "attackUp",
+      "defenseDown"
+    ],
+    "newSkillLevels": [
+      10,
+      15,
+      20
+    ],
+    "learnableSkills": []
+  }
+}

@@ -21,7 +21,7 @@ function SkillCard({ skill, sp, hp, showSkillsMenu }: Props) {
     const invalid = (resource.cost! > resource.pool || player !== playerTurn)
     return (
         <>
-            <button className="skill-card" disabled={invalid} style={invalid ? { cursor: "not-allowed" } : undefined} onClick={() => {
+            <button className="skill-card" disabled={invalid} style={invalid ? { cursor: "not-allowed" } : undefined} title={skill.description} onClick={() => {
                 const payload = handleSkill(skill)
                 sendJsonMessage(payload)
                 showSkillsMenu(false)

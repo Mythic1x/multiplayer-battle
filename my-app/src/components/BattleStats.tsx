@@ -35,29 +35,29 @@ function BattleStats({ health, sp, showFightersMenu, showSkillsMenu, showItemsMe
                 <NumberFlow value={health} className={`health-value ${flash === 'decrease' ? "flash-red" : ""} ${flash === 'increase' ? "flash-green" : ""}`} />
             </div>
             <div className="health-bar-container" style={isP2 ? { position: "relative" } : undefined}>
-                <div className="health-bar" style={{ width: `${health}%`, backgroundColor: getHealthColor(health), ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
+                <div className="health-bar" style={{ width: `${health}px`, backgroundColor: getHealthColor(health), ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
             </div>
             <div className="sp-text-container">
                 <span className="sp">SP: </span>
                 <NumberFlow value={sp} />
             </div>
             <div className="sp-bar-container" style={isP2 ? { position: "relative" } : undefined}>
-                <div className="sp-bar" style={{ width: `${sp}%`, ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
+                <div className="sp-bar" style={{ width: `${sp}px`, ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
             </div>
             <div className="button-container">
                 <AttackButton sendJsonMessage={sendJsonMessage} />
                 <DefendButton sendJsonMessage={sendJsonMessage} />
-                <button className="select-fighter" onClick={() => {
+                <button className="select-fighter" style={{ backgroundColor: "#6B7280" }} onClick={() => {
                     showFightersMenu(prev => !prev)
                     showSkillsMenu(false)
                     showItemsMenu(false)
                 }}>Change Fighter</button>
-                <button className="show-skills" onClick={() => {
+                <button className="show-skills" style={{ backgroundColor: "#7C3AED" }} onClick={() => {
                     showSkillsMenu(prev => !prev)
                     showFightersMenu(false)
                     showItemsMenu(false)
                 }}>Use Skill</button>
-                <button className="show-items" onClick={() => {
+                <button className="show-items" style={{ backgroundColor: "#D97706" }} onClick={() => {
                     showItemsMenu(prev => !prev)
                     showFightersMenu(false)
                     showSkillsMenu(false)
@@ -70,7 +70,7 @@ function BattleStats({ health, sp, showFightersMenu, showSkillsMenu, showItemsMe
 function AttackButton({ sendJsonMessage }: { sendJsonMessage: SendJsonMessage }) {
     const { player, turn, playerTurn } = useGameState()
     return (
-        <button className="attack" onClick={() => {
+        <button className="attack" style={{ backgroundColor: "#B91C1C" }} onClick={() => {
             const payload = handleAttackOrDefend(player, playerTurn, "attack")
             sendJsonMessage(payload)
         }} disabled={player !== playerTurn}>Attack</button>
@@ -80,7 +80,7 @@ function AttackButton({ sendJsonMessage }: { sendJsonMessage: SendJsonMessage })
 function DefendButton({ sendJsonMessage }: { sendJsonMessage: SendJsonMessage }) {
     const { player, turn, playerTurn } = useGameState()
     return (
-        <button className="defend" onClick={() => {
+        <button className="defend" style={{ backgroundColor: "#059669" }} onClick={() => {
             const payload = handleAttackOrDefend(player, playerTurn, "defend")
             sendJsonMessage(payload)
         }} disabled={player !== playerTurn}>Defend</button>

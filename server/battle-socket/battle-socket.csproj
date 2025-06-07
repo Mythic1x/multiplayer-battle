@@ -7,4 +7,9 @@
     <RootNamespace>battle_socket</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Geralt" Version="3.3.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.5" />
+  </ItemGroup>
+
 </Project>

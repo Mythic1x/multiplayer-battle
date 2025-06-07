@@ -1,3 +1,11 @@
+@keyframes slide-out {
+  from {
+    left: 100%;
+  }
+  to {
+    left: 104.5%;
+  }
+}
 .description-container {
   display: flex;
   justify-content: center;
@@ -12,7 +20,7 @@
 .stats-wrapper {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-evenly;
   height: 75vh;
 }
 
@@ -21,7 +29,6 @@
   flex-direction: column;
   justify-content: center;
   gap: 1em;
-  margin-left: 5px;
   align-items: left;
 }
 
@@ -31,7 +38,6 @@
   justify-content: center;
   gap: 1em;
   align-items: right;
-  margin-right: 5px;
 }
 
 .health-text-container {
@@ -42,29 +48,52 @@
   gap: 1em;
 }
 
+button {
+  cursor: pointer;
+}
+button:hover {
+  transform: scale(1.02);
+}
+button:active {
+  transform: scale(1);
+}
+
 .button-container {
-  flex-direction: row;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2em;
+  gap: 1em;
 }
 .button-container button {
-  border-radius: 25px;
-  background-color: purple;
-  outline: 1px;
+  width: 300px;
+  padding: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+}
+.button-container button:hover {
+  transform: scale(1.05);
+}
+.button-container button:active {
+  transform: scale(1);
 }
 
 .health-bar-container {
   border-radius: 4px;
   height: 15px;
   background-color: lightgrey;
-  max-width: 100%;
+  width: 100px;
+  max-width: 500px;
 }
 
 .health-bar {
   border-radius: 4px;
   height: 15px;
   background-color: limegreen;
-  max-width: 100%;
+  width: 100px;
+  max-width: 500px;
   transition: width 0.5s;
 }
 
@@ -72,14 +101,16 @@
   border-radius: 4px;
   height: 15px;
   background-color: lightgrey;
-  max-width: 100%;
+  width: 100px;
+  max-width: 500px;
 }
 
 .sp-bar {
   border-radius: 4px;
   height: 15px;
   background-color: mediumorchid;
-  max-width: 100%;
+  width: 100px;
+  max-width: 500px;
   transition: width 0.5s;
 }
 
@@ -94,8 +125,10 @@
 }
 
 .fighter-card {
+  display: flex;
   flex-direction: column;
-  height: 50px;
+  min-height: 50px;
+  height: fit-content;
   width: 200px;
   background-color: rgb(155, 153, 153);
   cursor: pointer;
@@ -126,6 +159,14 @@
   width: 230px;
   background-color: darkgray;
   padding: 10px;
+  position: absolute;
+  animation: slide-out 0.3s;
+  left: 104.5%;
+}
+.fighters-container button {
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
 }
 
 .delete-button {
@@ -134,10 +175,12 @@
 }
 
 .skill-card {
+  display: flex;
   flex-direction: column;
-  height: 50px;
+  min-height: 50px;
+  height: fit-content;
   width: 200px;
-  background-color: bisque;
+  background-color: rgb(177, 144, 184);
   cursor: pointer;
   border-radius: 4px;
 }
@@ -151,6 +194,14 @@
   width: 230px;
   background-color: darkgray;
   padding: 10px;
+  position: absolute;
+  animation: slide-out 0.3s;
+  left: 104.5%;
+}
+.skill-menu-container button {
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
 }
 
 .select-menu-container {
@@ -163,6 +214,7 @@
   flex-direction: row;
   gap: 0.5em;
   align-items: center;
+  position: relative;
 }
 
 .p2-container {
@@ -170,13 +222,16 @@
   flex-direction: row;
   gap: 0.5em;
   align-items: center;
+  position: relative;
 }
 
 .item-card {
+  display: flex;
   flex-direction: column;
-  height: 50px;
+  min-height: 50px;
+  height: fit-content;
   width: 200px;
-  background-color: blue;
+  background-color: rgb(199, 192, 192);
   cursor: pointer;
   border-radius: 4px;
 }
@@ -189,6 +244,14 @@
   height: fit-content;
   width: 230px;
   background-color: darkgray;
+  padding: 10px;
+  position: absolute;
+  animation: slide-out 0.3s;
+  left: 104.5%;
+}
+.item-menu button {
+  border-radius: 10px;
+  border: none;
   padding: 10px;
 }
 

@@ -26,14 +26,14 @@ function OpponentStats({ health, sp, isP2 }: Props) {
                 <NumberFlow value={health} className={`health-value ${flash === 'decrease' ? "flash-red" : ""} ${flash === 'increase' ? "flash-green" : ""}`} />
             </div>
             <div className="health-bar-container" style={isP2 ? { position: "relative" } : undefined}>
-                <div className="health-bar" style={{ width: `${health}%`, backgroundColor: getHealthColor(health), ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
+                <div className="health-bar" style={{ width: `${health}px`, backgroundColor: getHealthColor(health), ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
             </div>
             <div className="sp-text-container">
                 <span className="sp">SP: </span>
                 <NumberFlow value={sp} />
             </div>
             <div className="sp-bar-container" style={isP2 ? { position: "relative" } : undefined}>
-                <div className="sp-bar" style={{ width: `${sp}%`, ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
+                <div className="sp-bar" style={{ width: `${sp}px`, ...(isP2 ? { position: "absolute", right: 0 } : {}) }}></div>
             </div>
         </>
     )

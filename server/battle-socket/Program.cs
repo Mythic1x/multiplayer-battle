@@ -1,19 +1,29 @@
 
 using System.Collections.Concurrent;
-using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Xml.Serialization;
-using static WebSocketHelpers;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.RateLimiting;
 
-var jsonOptions = new JsonSerializerOptions {
-    PropertyNameCaseInsensitive = true,
-    IncludeFields = true
-};
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://*:5050");
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("login", opt => {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromSeconds(60);
+    });
+});
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseExceptionHandler();
+app.UseRateLimiter();
 var battleSessions = new ConcurrentDictionary<int, GameSession>();
 var sessionConnections = new ConcurrentDictionary<System.Net.IPAddress, SessionCache>();
 
@@ -22,17 +32,69 @@ var webSocketOptions = new WebSocketOptions {
     KeepAliveTimeout = TimeSpan.FromMinutes(2),
 };
 
+app.MapPost("/register", async (RegisterData data) => {
+    if (data.username.Length > 24) {
+        return Results.BadRequest("Username cannot be longer than 24 characters");
+    }
+    if (data.username.Contains('/') || data.username.Contains('\\')) {
+        return Results.BadRequest("invalid characters in username");
+    }
+    bool successful = await Database.RegisterUser(data.username, data.password, data.starterFighter);
+    if (!successful) {
+        return Results.InternalServerError("Error registering");
+    } else {
+        return Results.Ok("Registration successful");
+    }
+});
+
+app.MapPost("/login", async (LoginData data, HttpContext context) => {
+    var user = await Database.GetUser(data.username);
+    if (user is null || !PasswordHasher.VerifyPassword(user.hashedPassword, data.password)) {
+        return Results.BadRequest("User not found or incorrect password");
+    }
+
+    var claims = new List<Claim> {
+        new(ClaimTypes.Name, user.username),
+        new(ClaimTypes.NameIdentifier, user.id.ToString()),
+        new("Permissions", user.permissions.ToString())
+    };
+
+    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+    var authProperties = new AuthenticationProperties {
+        IsPersistent = true,
+        AllowRefresh = true
+    };
+    await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+    return Results.Ok("Login successful");
+}).RequireRateLimiting("login");
+app.MapPost("/logout", async (HttpContext httpContext) => {
+    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Ok("User logged out.");
+});
+
+app.MapGet("/player", async (HttpContext context) => {
+    var userIdString = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userIdString is null || !long.TryParse(userIdString, out var userId)) {
+        return Results.BadRequest("Invalid user ID");
+    }
+    var player = await Database.GetPlayerById(userId);
+    if (player is null) {
+        return Results.InternalServerError("Error getting player data");
+    }
+    return Results.Ok(player);
+}).RequireAuthorization();
+
 app.UseWebSockets(webSocketOptions);
 
 app.Use(async (context, next) => {
     if (context.Request.Path == "/ws") {
         if (context.WebSockets.IsWebSocketRequest && context.Connection.RemoteIpAddress is not null) {
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            Console.WriteLine("working");
             if (sessionConnections.TryGetValue(context.Connection.RemoteIpAddress, out SessionCache? session)) {
-                await handleMessages(webSocket, context, true, session);
+                await BattleWebSocket.handleMessages(webSocket, context, true, session, battleSessions, sessionConnections);
             } else {
-                await handleMessages(webSocket, context, null, null);
+                await BattleWebSocket.handleMessages(webSocket, context, null, null, battleSessions, sessionConnections);
             }
         } else {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
@@ -40,181 +102,11 @@ app.Use(async (context, next) => {
     } else {
         await next(context);
     }
-
 });
 
-async Task handleMessages(WebSocket webSocket, HttpContext context, bool? reconnect, SessionCache? session) {
-    var buffer = new byte[1024 * 4];
-    int sessionId = 0;
-    var cts = new CancellationTokenSource();
-    var receiveResult = await webSocket.ReceiveAsync(
-        new ArraySegment<byte>(buffer), CancellationToken.None
-    );
-    if (reconnect is true) {
-        await HandleReconnect(webSocket, session!, cts);
-    }
-    while (!receiveResult.CloseStatus.HasValue) {
-        if (session is not null) {
-            session.lastSeen = DateTime.Now;
-        }
-        if (receiveResult.MessageType == WebSocketMessageType.Text) {
-            var jsonString = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
-            var message = JsonSerializer.Deserialize<SocketMessage>(jsonString, jsonOptions);
-            if (message == null) return;
-            sessionId = message.id;
-            switch (message.type) {
-                case "connect":
-                    if (!sessionConnections.TryGetValue(context.Connection.RemoteIpAddress!, out _)) await HandleConnect(webSocket, message, battleSessions, context, sessionConnections);
-                    break;
-                case "action":
-                    await HandleAction(message, battleSessions);
-                    break;
-                default:
-                    Console.WriteLine("Unknown message type received.");
-                    break;
-            }
-        }
-        receiveResult = await webSocket.ReceiveAsync(
-        new ArraySegment<byte>(buffer), CancellationToken.None
-    );
-    }
-    await webSocket.CloseAsync(
-        receiveResult.CloseStatus.Value,
-        receiveResult.CloseStatusDescription,
-        CancellationToken.None
-    );
-
-    if (battleSessions.TryGetValue(sessionId, out var currentSession)) {
-        var key = currentSession.connections.FirstOrDefault(kvp => kvp.Value == webSocket).Key;
-        if (key != null) {
-            currentSession.connections.TryRemove(key, out _);
-            var messagePayload = new MessagePayload {
-                message = $"{key} disconnected"
-            };
-            var message = new ServerMessage<MessagePayload>("disconnect", messagePayload);
-            await currentSession.Broadcast(message.ToJSON());
-        }
-        if (currentSession.connections.IsEmpty) {
-            battleSessions.TryRemove(sessionId, out _);
-            sessionConnections.TryRemove(context.Connection.RemoteIpAddress!, out _);
-            return;
-        }
-    }
-
-    var delayDeletion = Task.Delay(TimeSpan.FromSeconds(60), cts.Token);
-    try {
-        await delayDeletion;
-        sessionConnections.TryRemove(context.Connection.RemoteIpAddress!, out _);
-    } catch (TaskCanceledException) {
-        Console.WriteLine("player reconnected");
-    } finally {
-        cts.Dispose();
-    }
-    return;
-}
-
+await Database.InitializeDatabase();
 await app.RunAsync();
+record RegisterData(string username, string password, string starterFighter);
+record LoginData(string username, string password);
 
-public record SessionCache {
-    public required string assignment;
-    public required string player;
-    public required GameSession session;
-    public DateTime lastSeen;
-}
 
-public record SocketMessage {
-    public int id;
-    public required string type;
-    public JsonElement payload;
-}
-public record ConnectMessagePayload {
-    public required string player;
-    public required Player playerData;
-}
-public record ActionPayload {
-    public required string action;
-    public string? skill;
-    public string? item;
-    public string? fighter;
-}
-public class ServerMessage<TPayload>(string messageType, TPayload messagePayload) {
-    public string type = messageType;
-    public TPayload payload = messagePayload;
-    public string ToJSON() {
-        var jsonOptions = new JsonSerializerOptions {
-            PropertyNameCaseInsensitive = true,
-            IncludeFields = true
-        };
-        return JsonSerializer.Serialize(this, jsonOptions);
-    }
-}
-public record ReconnectPayload {
-    public required Battle state;
-    public required string assignment;
-}
-public record StatePayload {
-    public required Battle state;
-    public string? message;
-    public Dictionary<string, List<string>>? buffInfo;
-}
-public record MessagePayload {
-    public required string message;
-}
-public record ErrorPayload {
-    public required string errorType;
-    public required string errorMessage;
-}
-public record EndPayload {
-    public required string winner;
-    public required string loser;
-    public required string message;
-    public required Battle state;
-}
-public class GameSession {
-    public OrderedDictionary<string, Player> players = [];
-    public ConcurrentDictionary<string, WebSocket> connections = [];
-    public Battle? battle;
-    public async Task Broadcast(string message) {
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes);
-        foreach (var connection in connections.Values) {
-            if (connection.State != WebSocketState.Open) continue;
-            await connection.SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
-        }
-    }
-    public async Task SendToPlayer(string message, string player) {
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes);
-        await connections[player].SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
-    }
-    public async Task SendEndNotification(Player winner, Player loser) {
-        var endPayload = new EndPayload {
-            winner = winner.name,
-            loser = loser.name,
-            message = $"{winner.name} has won the battle!",
-            state = battle!,
-        };
-        var endMessage = new ServerMessage<EndPayload>("end", endPayload);
-        await Broadcast(endMessage.ToJSON());
-        players = [];
-    }
-    public async Task SendErrorToClient(string type, string message, WebSocket client) {
-        var errorPayload = new ErrorPayload {
-            errorType = type,
-            errorMessage = message
-        };
-        var errorMsg = new ServerMessage<ErrorPayload>("error", errorPayload).ToJSON();
-        var bytes = Encoding.UTF8.GetBytes(errorMsg);
-        var arraySegment = new ArraySegment<byte>(bytes);
-        await client.SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
-    }
-    public async Task BroadcastAction(string message, Dictionary<string, List<string>>? buffInfo) {
-        var statePayload = new StatePayload {
-            state = battle!,
-            message = message,
-            buffInfo = buffInfo
-        };
-        var actionMessage = new ServerMessage<StatePayload>("stateUpdate", statePayload);
-        await Broadcast(actionMessage.ToJSON());
-    }
-}

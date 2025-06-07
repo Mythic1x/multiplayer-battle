@@ -1,18 +1,16 @@
 using System.Text.Json;
 using System.Net.WebSockets;
-using System.Text.Json.Nodes;
 using System.Collections.Concurrent;
-using Microsoft.VisualBasic;
 public static class WebSocketHelpers {
+    static readonly JsonSerializerOptions jsonOptions = new() {
+        PropertyNameCaseInsensitive = true,
+        IncludeFields = true
+    };
     public static async Task HandleConnect(WebSocket webSocket, SocketMessage message, ConcurrentDictionary<int, GameSession> battleSessions, HttpContext context, ConcurrentDictionary<System.Net.IPAddress, SessionCache> sessionConnections) {
         if (sessionConnections.TryGetValue(context.Connection.RemoteIpAddress!, out _)) {
             return;
         }
-        var jsonOptions = new JsonSerializerOptions {
-            PropertyNameCaseInsensitive = true,
-            IncludeFields = true
-        };
-
+        
         var data = JsonSerializer.Deserialize<ConnectMessagePayload>(message.payload, jsonOptions);
         if (data == null) return;
         string player = data.player;
@@ -56,8 +54,6 @@ public static class WebSocketHelpers {
             };
             var stateMsg = new ServerMessage<StatePayload>("start", statePayload);
             await session.Broadcast(stateMsg.ToJSON());
-
-            Console.WriteLine(sessionConnections[context.Connection.RemoteIpAddress!].ToString());
         }
     }
     public static async Task HandleReconnect(WebSocket webSocket, SessionCache session, CancellationTokenSource cts) {
@@ -77,11 +73,6 @@ public static class WebSocketHelpers {
         await session.session.Broadcast(reconnectAlertMessage.ToJSON());
     }
     public static async Task HandleAction(SocketMessage message, ConcurrentDictionary<int, GameSession> battleSessions) {
-        var jsonOptions = new JsonSerializerOptions {
-            PropertyNameCaseInsensitive = true,
-            IncludeFields = true
-        };
-
         var data = JsonSerializer.Deserialize<ActionPayload>(message.payload, jsonOptions);
         if (data == null) return;
         Battle? battle = battleSessions[message.id].battle;

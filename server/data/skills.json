@@ -1,0 +1,122 @@
+{
+    "flame": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 10,
+        "hpCost": null,
+        "type": "magic",
+        "action": "attack",
+        "elementType": "fire",
+        "description": "Burn your opponent with flames",
+        "name": "Flame",
+        "buffValues": null
+    },
+    "snowball": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 10,
+        "hpCost": null,
+        "type": "magic",
+        "action": "attack",
+        "elementType": "ice",
+        "description": "Deliver a cold punch with a snowball",
+        "name": "Snowball",
+        "buffValues": null
+    },
+    "splash": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 10,
+        "hpCost": null,
+        "type": "magic",
+        "action": "attack",
+        "elementType": "water",
+        "description": "Blind your opponents eyes with a deadly splash",
+        "name": "Splash",
+        "buffValues": null
+    },
+    "strike": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": null,
+        "hpCost": 10,
+        "type": "physical",
+        "action": "attack",
+        "elementType": "strength",
+        "description": "Punch your opponent",
+        "name": "Strike",
+        "buffValues": null
+    },
+    "lightning": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 10,
+        "hpCost": null,
+        "type": "magic",
+        "action": "attack",
+        "elementType": "lightning",
+        "description": "Shock your opponent with a strike of lightning",
+        "name": "Lightning",
+        "buffValues": null
+    },
+    "attackUp": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 20,
+        "hpCost": null,
+        "type": "support",
+        "action": "buff",
+        "elementType": "support",
+        "description": "Raises your attack for 5 turns",
+        "name": "Attack Up",
+        "buffValues": {
+            "Amount": 10,
+            "Length": 5,
+            "StatToBuff": "attack"
+        }
+    },
+    "defenseDown": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 20,
+        "hpCost": null,
+        "type": "support",
+        "action": "debuff",
+        "elementType": "support",
+        "description": "Lowers your opponent's defense for 5 turns",
+        "name": "Defense Down",
+        "buffValues": {
+            "Amount": 10,
+            "Length": 5,
+            "StatToBuff": "defense"
+        }
+    },
+    "heal": {
+        "damage": [
+            5,
+            10
+        ],
+        "spCost": 25,
+        "hpCost": null,
+        "type": "support",
+        "action": "heal",
+        "elementType": "support",
+        "description": "Heal a small portion of your health",
+        "name": "Heal",
+        "buffValues": null
+    }
+}

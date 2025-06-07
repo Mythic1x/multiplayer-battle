@@ -1,7 +1,4 @@
-using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using static HelperFunctions;
 
 public class Battle(Player p1, Player p2) {
     public int turn = 1;

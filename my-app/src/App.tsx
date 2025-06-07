@@ -136,10 +136,7 @@ function App() {
             playerData: player,
           },
         },
-
         )
-
-        console.log("WebSocket connection established. Connect message sent.");
       },
     }
   )
@@ -203,14 +200,21 @@ function App() {
       <div className="stats-wrapper">
         <GameContext.Provider value={{ player: player1, turn: turn, playerTurn: playerTurn, }}>
           <div className="p1-container">
+            {(assignment === "player1" || !assignment)
+              ?
+              <div className="select-menu-container">
+                {fightersMenu && (<FighterSelect fighters={player1.fighters} showFightersMenu={setShowFightersMenu} />)}
+                {SkillsMenu && (<SkillMenu fighter={player1.selectedFighter} sp={player1.sp} hp={player1.hp} showSkillsMenu={setShowSkillsMenu} />)}
+                {itemsMenu && (<ItemMenu playerObj={player1} showItemsMenu={setShowItemsMenu} />)}
+              </div>
+              :
+              <></>
+            }
             <div className="stat-container">
               <span className="player-name">{player1.name}</span>
-              {assignment === "player1"
-                ? <><BattleStats health={player1.hp} sp={player1.sp} showFightersMenu={setShowFightersMenu} showSkillsMenu={setShowSkillsMenu} showItemsMenu={setShowItemsMenu} isP2={false} /><div className="select-menu-container">
-                  {fightersMenu && (<FighterSelect fighters={player1.fighters} showFightersMenu={setShowFightersMenu} />)}
-                  {SkillsMenu && (<SkillMenu fighter={player1.selectedFighter} sp={player1.sp} hp={player1.hp} showSkillsMenu={setShowSkillsMenu} />)}
-                  {itemsMenu && (<ItemMenu playerObj={player1} showItemsMenu={setShowItemsMenu} />)}
-                </div></>
+              {(assignment === "player1" || !assignment)
+                ? <><BattleStats health={player1.hp} sp={player1.sp} showFightersMenu={setShowFightersMenu} showSkillsMenu={setShowSkillsMenu} showItemsMenu={setShowItemsMenu} isP2={false} />
+                </>
                 : <OpponentStats health={player1.hp} sp={player1.sp} isP2={false} />
               }
             </div>
@@ -218,14 +222,21 @@ function App() {
         </GameContext.Provider>
         <GameContext.Provider value={{ player: player2, turn: turn, playerTurn: playerTurn, }}>
           <div className="p2-container">
+            {assignment === "player2"
+              ?
+              <div className="select-menu-container">
+                {fightersMenu && (<FighterSelect fighters={player2.fighters} showFightersMenu={setShowFightersMenu} />)}
+                {SkillsMenu && (<SkillMenu fighter={player2.selectedFighter} sp={player2.sp} hp={player2.hp} showSkillsMenu={setShowSkillsMenu} />)}
+                {itemsMenu && (<ItemMenu playerObj={player2} showItemsMenu={setShowItemsMenu} />)}
+              </div>
+              :
+              <></>
+            }
             <div className="p2stat-container">
               <span className="player-name">{player2.name}</span>
               {assignment === "player2"
-                ? <><BattleStats health={player2.hp} sp={player2.sp} showFightersMenu={setShowFightersMenu} showSkillsMenu={setShowSkillsMenu} showItemsMenu={setShowItemsMenu} isP2={true} /><div className="select-menu-container">
-                  {fightersMenu && (<FighterSelect fighters={player2.fighters} showFightersMenu={setShowFightersMenu} />)}
-                  {SkillsMenu && (<SkillMenu fighter={player2.selectedFighter} sp={player2.sp} hp={player2.hp} showSkillsMenu={setShowSkillsMenu} />)}
-                  {itemsMenu && (<ItemMenu playerObj={player2} showItemsMenu={setShowItemsMenu} />)}
-                </div></>
+                ? <><BattleStats health={player2.hp} sp={player2.sp} showFightersMenu={setShowFightersMenu} showSkillsMenu={setShowSkillsMenu} showItemsMenu={setShowItemsMenu} isP2={true} />
+                </>
                 : <OpponentStats health={player2.hp} sp={player2.sp} isP2={true} />
               }
             </div>
