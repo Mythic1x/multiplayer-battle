@@ -11,9 +11,9 @@ builder.WebHost.UseUrls("http://*:5050");
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie();
+builder.Services.AddAuthorization();
 
-builder.Services.AddRateLimiter(options =>
-{
+builder.Services.AddRateLimiter(options => {
     options.AddFixedWindowLimiter("login", opt => {
         opt.PermitLimit = 5;
         opt.Window = TimeSpan.FromSeconds(60);
@@ -22,7 +22,6 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseExceptionHandler();
 app.UseRateLimiter();
 var battleSessions = new ConcurrentDictionary<int, GameSession>();
 var sessionConnections = new ConcurrentDictionary<System.Net.IPAddress, SessionCache>();
@@ -68,6 +67,7 @@ app.MapPost("/login", async (LoginData data, HttpContext context) => {
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
     return Results.Ok("Login successful");
 }).RequireRateLimiting("login");
+
 app.MapPost("/logout", async (HttpContext httpContext) => {
     await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     return Results.Ok("User logged out.");

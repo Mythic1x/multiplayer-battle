@@ -1,6 +1,10 @@
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 public static class Database {
+    static readonly JsonSerializerOptions jsonOptions = new() {
+        PropertyNameCaseInsensitive = true,
+        IncludeFields = true
+    };
     [Flags]
     public enum UserPermissions {
         None = 0,
@@ -57,7 +61,7 @@ public static class Database {
         using var connection = new SqliteConnection(file);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT Id, Username, Password FROM Users WHERE Username = @Username;";
+        command.CommandText = "SELECT * FROM Users WHERE Username = @Username;";
         command.Parameters.AddWithValue("@Username", username);
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync()) {
@@ -73,7 +77,7 @@ public static class Database {
         using var connection = new SqliteConnection(file);
         await connection.OpenAsync();
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT Id, Username, Password FROM Users WHERE Id = @Id;";
+        command.CommandText = "SELECT * FROM Users WHERE Id = @Id;";
         command.Parameters.AddWithValue("@Id", userid);
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync()) {
@@ -106,8 +110,8 @@ public static class Database {
                 string fightersJson = reader.GetString(reader.GetOrdinal("FightersJson"));
                 string inventoryJson = reader.GetString(reader.GetOrdinal("InventoryJson"));
                 string selectedFighterKey = reader.GetString(reader.GetOrdinal("SelectedFighterKey"));
-                var fighters = JsonSerializer.Deserialize<Dictionary<string, Fighter>>(fightersJson) ?? [];
-                var inventory = JsonSerializer.Deserialize<Dictionary<string, Item>>(inventoryJson) ?? [];
+                var fighters = JsonSerializer.Deserialize<Dictionary<string, Fighter>>(fightersJson, jsonOptions) ?? [];
+                var inventory = JsonSerializer.Deserialize<Dictionary<string, Item>>(inventoryJson, jsonOptions) ?? [];
                 if (!fighters.TryGetValue(selectedFighterKey, out Fighter? fighter)) {
                     Console.WriteLine("Invalid selected fighter");
                     return null;
@@ -123,16 +127,16 @@ public static class Database {
     }
     public static async Task<bool> RegisterUser(string username, string password, string starterFighter) {
         //changing later
-        using StreamReader fr = new("../data/fighters.json");
+        using StreamReader fr = new("../data/fighter.json");
         string fighterJson = await fr.ReadToEndAsync();
-        var fighters = JsonSerializer.Deserialize<Dictionary<string, StoredFighter>>(fighterJson);
+        var fighters = JsonSerializer.Deserialize<Dictionary<string, StoredFighter>>(fighterJson, jsonOptions);
         if (fighters is null) {
             Console.WriteLine("Error reading fighters");
             return false;
         }
         using StreamReader sr = new("../data/skills.json");
         string skillsJson = await sr.ReadToEndAsync();
-        var skills = JsonSerializer.Deserialize<Dictionary<string, Skill>>(skillsJson);
+        var skills = JsonSerializer.Deserialize<Dictionary<string, Skill>>(skillsJson, jsonOptions);
         if (skills is null) {
             Console.WriteLine("Error reading skills");
             return false;
@@ -144,13 +148,14 @@ public static class Database {
         Fighter selectedFighter;
         try {
             selectedFighter = fighter.ConvertToFighter(skills);
-        } catch {
+        } catch (Exception e) {
+            Console.WriteLine(e);
             return false;
         }
         var initialFighters = new Dictionary<string, Fighter> {
             { starterFighter, selectedFighter }
         };
-        string fightersToSaveJson = JsonSerializer.Serialize(initialFighters);
+        string fightersToSaveJson = JsonSerializer.Serialize(initialFighters, jsonOptions);
         using var connection = new SqliteConnection(file);
         await connection.OpenAsync();
         using var transaction = await connection.BeginTransactionAsync();
@@ -195,8 +200,8 @@ public static class Database {
     }
     public static async Task<bool> UpdatePlayer(Player player) {
         using var connection = new SqliteConnection(file);
-        var fightersJson = JsonSerializer.Serialize(player.fighters ?? []);
-        var inventoryJson = JsonSerializer.Serialize(player.inventory ?? []);
+        var fightersJson = JsonSerializer.Serialize(player.fighters ?? [], jsonOptions);
+        var inventoryJson = JsonSerializer.Serialize(player.inventory ?? [], jsonOptions);
         if (player.selectedFighter?.key is null) {
             Console.WriteLine("Selected fighter is null somehow");
             return false;
@@ -271,14 +276,16 @@ public class StoredFighter {
     public required int luck;
     public required List<string> skills;
     public Queue<int>? newSkillLevels;
-    public Queue<Skill>? learnableSkills;
+    public Queue<string>? learnableSkills;
     public Fighter ConvertToFighter(Dictionary<string, Skill> skillJson) {
         Dictionary<string, Skill> skillDictionary = [];
+        Queue<Skill>? skillQueue = [];
         foreach (string skillKey in skills) {
             if (!skillJson.TryGetValue(skillKey, out Skill? value)) {
                 throw new Exception("Error transferring skills");
             }
             skillDictionary.Add(skillKey, value);
+            skillQueue.Enqueue(value);
         }
         return new Fighter {
             name = name,
@@ -294,7 +301,7 @@ public class StoredFighter {
             luck = luck,
             skills = skillDictionary,
             newSkillLevels = newSkillLevels ?? [],
-            learnableSkills = learnableSkills ?? []
+            learnableSkills = skillQueue ?? []
         };
     }
 }

@@ -142,14 +142,14 @@ public class Skill {
     public int? spCost;
     public int? hpCost;
     public required string type;
-    public required string method;
+    public required string action;
     public required string elementType;
     public required string description;
     public required string name;
     public readonly record struct BuffValues(int Amount, int Length, string StatToBuff);
     public BuffValues? buffValues;
     public string Property(Player player, Player opponent) {
-        return method switch {
+        return action switch {
             "attack" => HandleAttack(player, opponent, this),
             "heal" => HandleHeal(player, this),
             "buff" => HandleBuff(player, this),
