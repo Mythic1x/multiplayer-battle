@@ -17,7 +17,8 @@ export function LoginPage() {
             setMessage("Logging in")
             setLoggingIn(true)
             await login(username, password)
-            setMessage("success")
+            setMessage("Login successful")
+            setLoggingIn(false)
         } catch (error: any) {
             setMessage(error.toString())
             setLoggingIn(false)

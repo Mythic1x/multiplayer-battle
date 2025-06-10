@@ -8,14 +8,21 @@ export function HomePage() {
     return (
         <div className="home">
             {!isAuthenticated ?
-                <><button className="sign-up-button" onClick={() => navigate("/sign-up")}>Sign Up</button>
-                    <button className="login-button" onClick={() => navigate("/login")}>Login</button></>
+                <>
+                    <div className="guest-container">
+                        <button className="sign-up-button" onClick={() => navigate("/sign-up")}>Sign Up</button>
+                        <button className="login-button" onClick={() => navigate("/login")}>Login</button>
+                    </div>
+                </>
                 :
-                <><h1 className="welcome-text">welcome {user!.username}</h1>
-                    <button className="battle-button" onClick={() => navigate("/battle")}>Battle</button>
-                    <button className="logout-button" onClick={() => {
-                        logout()
-                    }}>Log Out</button>
+                <>
+                    <h1 className="welcome-text">Welcome {user!.username}!</h1>
+                    <div className="logged-in-container">
+                        <button className="battle-button" onClick={() => navigate("/battle")}>Battle</button>
+                        <button className="logout-button" onClick={() => {
+                            logout()
+                        }}>Log Out</button>
+                    </div>
                 </>}
         </div>
     )

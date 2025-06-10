@@ -74,7 +74,8 @@ app.MapPost("/login", async (LoginData data, HttpContext context) => {
         AllowRefresh = true
     };
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-    return Results.Ok("Login successful");
+    var userInfo = new SafeUser(user.username);
+    return Results.Ok(userInfo);
 }).RequireRateLimiting("login");
 
 app.MapGet("/logout", async (HttpContext httpContext) => {

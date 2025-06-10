@@ -28,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log(error.toString())
             setLoading(false)
         }
-        setLoading(false)
     }
 
     useEffect(() => {
@@ -36,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (user) setUser(user)
             setLoading(false)
         })
-    }, [user])
+    }, [])
 
     const login = async (username: string, password: string) => {
         const payload = {
@@ -56,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log(error.toString())
             throw new Error(error.toString());
         }
-        setLoading(false)
+
     }
 
     const logout = async () => {
