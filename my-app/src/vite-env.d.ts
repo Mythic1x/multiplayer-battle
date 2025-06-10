@@ -39,6 +39,11 @@ interface Player {
     selectedFighter: Fighter
 }
 
+interface User {
+    username: string
+    //placeholder
+}
+
 interface GameState {
     player1: Player
     player2: Player

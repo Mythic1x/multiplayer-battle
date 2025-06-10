@@ -3,7 +3,7 @@ import { ActionPayload, Fighter, Message, Player } from "../vite-env"
 import { useState, useRef, useEffect, useContext, act } from "react"
 import { useGameState } from "../GameContext"
 import useWebSocket from "react-use-websocket"
-import { gameId, socketUrl } from "../App"
+import { gameId, socketUrl } from "../pages/battle.tsx"
 import { SendJsonMessage } from "react-use-websocket/dist/lib/types"
 
 

@@ -1,248 +1,30 @@
-import { act, useEffect, useReducer, useRef, useState, useContext, createContext } from 'react'
-import BattleStats from './components/BattleStats'
-import OpponentStats from './components/OpponentStats'
-import FighterCard from './components/FighterCard'
-import './App.css'
-import { ActionPayload, Fighter, GameState, Player, ServerEndPayload, ServerErrorPayload, ServerMessage, ServerMessagePayload, ServerStatePayload, Skill } from './vite-env'
-import FighterSelect from './components/FighterSelect'
-import SkillMenu from './components/SkillMenu'
-import { GameContext } from './GameContext'
-import ItemMenu from './components/ItemMenu'
-
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-
-const testFighter: Fighter = {
-  strength: 10,
-  dexterity: 10,
-  magic: 5,
-  luck: 10,
-  image: "https://i.pinimg.com/736x/20/33/c5/2033c5021a4ae8ff7495116820ff4f03.jpg",
-  skills: {
-    slash: {
-      name: "Slash",
-      damage: [20, 30],
-      hpCost: 10,
-      type: "physical",
-      method: "attack",
-      description: "Slash the enemy for 15 damage",
-      elementType: "physical"
-    },
-  },
-  level: 1,
-  name: "testFighter",
-  type: "physical",
-  elementType: "physical"
-}
-
-const testFighter2: Fighter = {
-  strength: 10,
-  dexterity: 10,
-  magic: 15,
-  luck: 10,
-  image: "https://i.pinimg.com/736x/20/33/c5/2033c5021a4ae8ff7495116820ff4f03.jpg",
-  skills: {
-    fireball: {
-      name: "Fireball",
-      damage: [20, 25],
-      spCost: 10,
-      type: "magic",
-      method: "attack",
-      description: "Fireball the enemy for 20 damage",
-      elementType: "fire"
-    },
-  },
-  level: 1,
-  name: "testFighter2",
-  type: "magic",
-  elementType: "fire"
-}
-
-const name = `player${Math.random()}`
-
-const player: Player = {
-  name: name,
-  hp: 100,
-  maxHp: 100,
-  sp: 100,
-  maxSp: 100,
-  selectedFighter: testFighter,
-  fighters: { testFighter: testFighter, testFighter2: testFighter2 },
-  inventory: {
-    "health potion": {
-      type: "heal",
-      effectAmount: 50,
-      description: "Restores 50 HP.",
-      owned: 3,
-      name: "Health Potion"
-    },
-    "mana potion": {
-      type: "sp",
-      effectAmount: 30,
-      description: "Restores 30 SP.",
-      owned: 2,
-      name: "Mana Potion"
-    }
-  },
-}
-
-const dummyPlayer: Player = {
-  name: "No player",
-  hp: 100,
-  sp: 100,
-  maxHp: 100,
-  maxSp: 100,
-  selectedFighter: testFighter,
-  fighters: { testPhys: testFighter, testMagic: testFighter2 },
-  inventory: {
-    "health potion": {
-      type: "heal",
-      effectAmount: 50,
-      description: "Restores 50 HP.",
-      owned: 3,
-      name: "Health Potion"
-    },
-    "mana potion": {
-      type: "heal",
-      effectAmount: 30,
-      description: "Restores 30 SP.",
-      owned: 2,
-      name: "Mana Potion"
-    }
-  },
-}
-
-const gameState: GameState = {
-  player1: player,
-  player2: dummyPlayer,
-  turn: 1
-}
-
-export const gameId = 1
-
-export const socketUrl = `ws://${window.location.hostname}:5050/ws`
+import { Routes, Route, BrowserRouter } from "react-router-dom"
+import { LoginPage } from "./pages/login"
+import { SignUpPage } from "./pages/sign-up"
+import { BattlePage } from "./pages/battle"
+import { ProtectedRoute } from "./components/ProtectedRoute"
+import { AuthProvider } from "./AuthContext"
+import { HomePage } from "./pages/home"
 
 function App() {
-  const [battleState, setBattleState] = useState(gameState)
-  const [assignment, setAssignment] = useState<undefined | "player1" | "player2">(undefined)
-  const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl,
-    {
-      share: true,
-      onOpen: () => {
-        sendJsonMessage({
-          type: "connect",
-          id: gameId,
-          payload: {
-            player: player.name,
-            playerData: player,
-          },
-        },
-        )
-      },
-    }
-  )
-  useEffect(() => {
-    let message = lastJsonMessage as ServerMessage
-    if (!message) return
-    console.log(message)
-    switch (message.type) {
-      case "assignment":
-        console.log(assignment)
-        if (message.payload.message === "player1" || message.payload.message === "player2") {
-          setAssignment(message.payload.message)
-        }
-        break;
-      case "reconnection":
-      case "connection":
-      case "disconnect":
-        setDescription(message.payload.message)
-        break;
-      case "start":
-        setDescription("battle started")
-        setBattleState(message.payload.state)
-        break;
-      case "stateUpdate":
-        setDescription(message.payload.message!)
-        setBattleState(message.payload.state)
-        break;
-      case "error":
-        alert(`${message.payload.errorType}: ${message.payload.errorMessage}`)
-        break;
-      case "end":
-        setDescription(message.payload.message)
-        setBattleState(message.payload.state)
-        setTimeout(() => {
-          alert(`${message.payload.winner} has beaten ${message.payload.loser} before euro beat clannad! click ok to refresh and rematch`)
-          location.reload()
-        }, 2000)
-        break;
-      case "reconnect":
-        if (message.payload.assignment === "player1" || message.payload.assignment === "player2") {
-          setAssignment(message.payload.assignment)
-        }
-        setBattleState(message.payload.state)
-    }
-
-  }, [lastJsonMessage])
-  const [itemsMenu, setShowItemsMenu] = useState(false)
-  const [SkillsMenu, setShowSkillsMenu] = useState(false)
-  const [fightersMenu, setShowFightersMenu] = useState(false)
-  const [description, setDescription] = useState('')
-  const { player1, player2, turn } = battleState
-  const playerTurn = turn % 2 === 0 ? player2 : player1
-
 
   return (
     <>
-      <h1 className="test">{playerTurn.selectedFighter.name}, Turn: {`${playerTurn.name}'s turn`}</h1>
-      <div className="description-container">
-        <span className="description">{description}</span>
-      </div>
-      <div className="stats-wrapper">
-        <GameContext.Provider value={{ player: player1, turn: turn, playerTurn: playerTurn, }}>
-          <div className="p1-container">
-            {(assignment === "player1" || !assignment)
-              ?
-              <div className="select-menu-container">
-                {fightersMenu && (<FighterSelect fighters={player1.fighters} showFightersMenu={setShowFightersMenu} />)}
-                {SkillsMenu && (<SkillMenu fighter={player1.selectedFighter} sp={player1.sp} hp={player1.hp} showSkillsMenu={setShowSkillsMenu} />)}
-                {itemsMenu && (<ItemMenu playerObj={player1} showItemsMenu={setShowItemsMenu} />)}
-              </div>
-              :
-              <></>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage></LoginPage>}></Route>
+            <Route path="/sign-up" element={<SignUpPage></SignUpPage>}></Route>
+            <Route path="/" element={<HomePage></HomePage>}></Route>
+            <Route path="/battle" element={
+              <ProtectedRoute>
+                <BattlePage />
+              </ProtectedRoute>
             }
-            <div className="stat-container">
-              <span className="player-name">{player1.name}</span>
-              {(assignment === "player1" || !assignment)
-                ? <><BattleStats health={player1.hp} sp={player1.sp} showFightersMenu={setShowFightersMenu} showSkillsMenu={setShowSkillsMenu} showItemsMenu={setShowItemsMenu} isP2={false} />
-                </>
-                : <OpponentStats health={player1.hp} sp={player1.sp} isP2={false} />
-              }
-            </div>
-          </div>
-        </GameContext.Provider>
-        <GameContext.Provider value={{ player: player2, turn: turn, playerTurn: playerTurn, }}>
-          <div className="p2-container">
-            {assignment === "player2"
-              ?
-              <div className="select-menu-container">
-                {fightersMenu && (<FighterSelect fighters={player2.fighters} showFightersMenu={setShowFightersMenu} />)}
-                {SkillsMenu && (<SkillMenu fighter={player2.selectedFighter} sp={player2.sp} hp={player2.hp} showSkillsMenu={setShowSkillsMenu} />)}
-                {itemsMenu && (<ItemMenu playerObj={player2} showItemsMenu={setShowItemsMenu} />)}
-              </div>
-              :
-              <></>
-            }
-            <div className="p2stat-container">
-              <span className="player-name">{player2.name}</span>
-              {assignment === "player2"
-                ? <><BattleStats health={player2.hp} sp={player2.sp} showFightersMenu={setShowFightersMenu} showSkillsMenu={setShowSkillsMenu} showItemsMenu={setShowItemsMenu} isP2={true} />
-                </>
-                : <OpponentStats health={player2.hp} sp={player2.sp} isP2={true} />
-              }
-            </div>
-          </div>
-        </GameContext.Provider>
-      </div>
+            ></Route>
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </>
   )
 }

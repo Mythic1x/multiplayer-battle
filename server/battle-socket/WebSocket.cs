@@ -8,7 +8,7 @@ public class BattleWebSocket {
         PropertyNameCaseInsensitive = true,
         IncludeFields = true
     };
-    public static async Task handleMessages(WebSocket webSocket, HttpContext context, bool? reconnect, SessionCache? session, ConcurrentDictionary<int, GameSession> battleSessions, ConcurrentDictionary<System.Net.IPAddress, SessionCache> sessionConnections) {
+    public static async Task handleMessages(WebSocket webSocket, HttpContext context, bool? reconnect, SessionCache? session, ConcurrentDictionary<int, GameSession> battleSessions, ConcurrentDictionary<string, SessionCache> sessionConnections, string cookieId) {
         var buffer = new byte[1024 * 4];
         int sessionId = 0;
         var cts = new CancellationTokenSource();
@@ -29,7 +29,7 @@ public class BattleWebSocket {
                 sessionId = message.id;
                 switch (message.type) {
                     case "connect":
-                        if (!sessionConnections.TryGetValue(context.Connection.RemoteIpAddress!, out _)) await HandleConnect(webSocket, message, battleSessions, context, sessionConnections);
+                        if (!sessionConnections.TryGetValue(cookieId, out _)) await HandleConnect(webSocket, message, battleSessions, context, sessionConnections, cookieId);
                         break;
                     case "action":
                         await HandleAction(message, battleSessions);
@@ -61,7 +61,7 @@ public class BattleWebSocket {
             }
             if (currentSession.connections.IsEmpty) {
                 battleSessions.TryRemove(sessionId, out _);
-                sessionConnections.TryRemove(context.Connection.RemoteIpAddress!, out _);
+                sessionConnections.TryRemove(cookieId, out _);
                 return;
             }
         }
@@ -69,7 +69,14 @@ public class BattleWebSocket {
         var delayDeletion = Task.Delay(TimeSpan.FromSeconds(60), cts.Token);
         try {
             await delayDeletion;
-            sessionConnections.TryRemove(context.Connection.RemoteIpAddress!, out _);
+            sessionConnections.TryRemove(cookieId, out _);
+            if (currentSession is not null) {
+                var messagePayload = new MessagePayload {
+                    message = $"Opponent has forfeit. Ending session"
+                };
+                var message = new ServerMessage<MessagePayload>("opponentquit", messagePayload);
+                await currentSession.Broadcast(message.ToJSON());
+            }
         } catch (TaskCanceledException) {
             Console.WriteLine("player reconnected");
         } finally {

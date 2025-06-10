@@ -2,7 +2,7 @@
 import useWebSocket from "react-use-websocket"
 import { useGameState } from "../GameContext"
 import { ActionPayload, Item, Message } from "../vite-env"
-import { gameId, socketUrl } from "../App"
+import { gameId, socketUrl } from "../pages/battle.tsx"
 
 interface Props {
     item: Item

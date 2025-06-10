@@ -6,8 +6,8 @@ public static class WebSocketHelpers {
         PropertyNameCaseInsensitive = true,
         IncludeFields = true
     };
-    public static async Task HandleConnect(WebSocket webSocket, SocketMessage message, ConcurrentDictionary<int, GameSession> battleSessions, HttpContext context, ConcurrentDictionary<System.Net.IPAddress, SessionCache> sessionConnections) {
-        if (sessionConnections.TryGetValue(context.Connection.RemoteIpAddress!, out _)) {
+    public static async Task HandleConnect(WebSocket webSocket, SocketMessage message, ConcurrentDictionary<int, GameSession> battleSessions, HttpContext context, ConcurrentDictionary<string, SessionCache> sessionConnections, string cookieId) {
+        if (sessionConnections.TryGetValue(cookieId, out _)) {
             return;
         }
         
@@ -27,7 +27,7 @@ public static class WebSocketHelpers {
         session.connections.TryAdd(player, webSocket);
         var assignment = $"player{session.connections.Count}";
         session.players.TryAdd(player, playerData);
-        sessionConnections[context.Connection.RemoteIpAddress!] = new SessionCache {
+        sessionConnections[cookieId] = new SessionCache {
             assignment = assignment,
             player = player,
             session = session,
