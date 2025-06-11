@@ -29,14 +29,19 @@ interface Skill {
 }
 
 interface Player {
-    name: string
-    hp: number
-    sp: number
-    maxHp: number
-    maxSp: number
-    inventory: Record<string, Item>,
-    fighters: Record<string, Fighter>
-    selectedFighter: Fighter
+   id: number;
+    name: string;
+    level: number;
+    xp: number;
+    maxSp: number;
+    maxHp: number;
+    xpForLevelUp: number;
+    money: number;
+    fighters: Record<string, Fighter>;
+    inventory: Record<string, Item>;
+    selectedFighter: Fighter;
+    sp: number;
+    hp: number;
 }
 
 interface User {

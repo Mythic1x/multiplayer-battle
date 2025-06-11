@@ -32,7 +32,7 @@ export function LoginPage() {
             <form onSubmit={handleLogin} className="login-form">
                 <input type="text" className="username-input" value={username} placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
                 <input type="password" className="password-input" value={password} placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-                <button className="submit-button" type="submit" disabled={loggingIn || (!username && !password)}>
+                <button className="submit-button" type="submit" disabled={loggingIn || !password || !username}>
                     Login
                 </button>
             </form>

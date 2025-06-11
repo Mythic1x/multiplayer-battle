@@ -101,7 +101,6 @@ public static class WebSocketHelpers {
                 return;
             }
             if (!player.selectedFighter.skills.TryGetValue(data.skill.ToLower(), out Skill? skill)) {
-                Console.WriteLine(data.skill);
                 await session.SendErrorToClient("InvalidAction", "No Skill Found", battleSessions[message.id].connections[player.name]);
                 return;
             }

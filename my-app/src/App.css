@@ -203,25 +203,35 @@ button {
   flex-direction: row;
 }
 
-.logged-in-container {
+.logged-in-container,
+.guest-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 1em;
-  margin-top: 20px;
 }
-.logged-in-container .battle-button {
+.logged-in-container .battle-button,
+.logged-in-container .sign-up-button,
+.guest-container .battle-button,
+.guest-container .sign-up-button {
   background-color: hotpink;
   border: none;
   border-radius: 5px;
   padding: 7px;
 }
-.logged-in-container .logout-button {
+.logged-in-container .logout-button,
+.logged-in-container .login-button,
+.guest-container .logout-button,
+.guest-container .login-button {
   padding: 7px;
   border-radius: 5px;
   border: none;
   background-color: plum;
+}
+
+.guest-container {
+  height: 90vh;
 }
 
 .welcome-text {
@@ -273,6 +283,122 @@ button {
   border-radius: 10px;
   border: none;
   padding: 10px;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-form,
+.signup-form {
+  background-color: #1e1e1e;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border: 1px solid #333;
+}
+
+.username-input,
+.password-input,
+.fighter-select {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 15px;
+  color: #e0e0e0;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.fighter-select {
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 1em;
+}
+
+.fighter-select:invalid {
+  color: #888;
+}
+
+.fighter-select option {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.username-input::placeholder,
+.password-input::placeholder {
+  color: #888;
+}
+
+.username-input:focus,
+.password-input:focus,
+.fighter-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.submit-button {
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  margin-top: 10px;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.submit-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-button:disabled {
+  background: #333;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.login-submit-text,
+.signup-submit-text {
+  min-height: 24px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  text-align: center;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.login-submit-text.error,
+.signup-submit-text.error {
+  color: #dc3545;
+}
+
+.login-submit-text.loading,
+.signup-submit-text.loading {
+  color: #007bff;
 }
 
 /*# sourceMappingURL=App.css.map */

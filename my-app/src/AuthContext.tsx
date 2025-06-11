@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             username: username,
             password: password
         }
-        try {
             const response = await fetch(`http://${window.location.hostname}:5050/login`, { method: "POST", body: JSON.stringify(payload), credentials: "include", headers: { "Content-type": "application/json" } })
             if (response.status !== 200) {
                 const error = await response.text()
@@ -51,10 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const userJson = await response.json()
             setUser(userJson)
             navigate("/")
-        } catch (error: any) {
-            console.log(error.toString())
-            throw new Error(error.toString());
-        }
 
     }
 

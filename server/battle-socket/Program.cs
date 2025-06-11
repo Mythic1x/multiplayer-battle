@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => {
+    options.SerializerOptions.IncludeFields = true;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+});
 builder.WebHost.UseUrls("http://*:5050");
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => {

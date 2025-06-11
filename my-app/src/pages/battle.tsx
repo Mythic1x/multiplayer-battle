@@ -2,7 +2,7 @@ import { useEffect, useState, } from 'react'
 import BattleStats from '../components/BattleStats'
 import OpponentStats from '../components/OpponentStats'
 import '../App.css'
-import { ActionPayload, Fighter, GameState, Player, ServerEndPayload, ServerErrorPayload, ServerMessage, ServerMessagePayload, ServerStatePayload, Skill } from '../vite-env'
+import { Fighter, GameState, Player, ServerMessage, } from '../vite-env'
 import FighterSelect from '../components/FighterSelect'
 import SkillMenu from '../components/SkillMenu'
 import { GameContext } from '../GameContext'
@@ -56,35 +56,12 @@ const testFighter2: Fighter = {
   elementType: "fire"
 }
 
-const name = `player${Math.random()}`
-
-const player: Player = {
-  name: name,
-  hp: 100,
-  maxHp: 100,
-  sp: 100,
-  maxSp: 100,
-  selectedFighter: testFighter,
-  fighters: { testFighter: testFighter, testFighter2: testFighter2 },
-  inventory: {
-    "health potion": {
-      type: "heal",
-      effectAmount: 50,
-      description: "Restores 50 HP.",
-      owned: 3,
-      name: "Health Potion"
-    },
-    "mana potion": {
-      type: "sp",
-      effectAmount: 30,
-      description: "Restores 30 SP.",
-      owned: 2,
-      name: "Mana Potion"
-    }
-  },
-}
-
 const dummyPlayer: Player = {
+  level: 0,
+  money: 0,
+  xpForLevelUp: 0,
+  xp: 0,
+  id: 0,
   name: "No player",
   hp: 100,
   sp: 100,
@@ -110,42 +87,69 @@ const dummyPlayer: Player = {
   },
 }
 
-const gameState: GameState = {
-  player1: player,
-  player2: dummyPlayer,
-  turn: 1
-}
 
 export const gameId = 1
 
 export const socketUrl = `ws://${window.location.hostname}:5050/ws`
+const gameState: GameState = {
+  player1: dummyPlayer,
+  player2: dummyPlayer,
+  turn: 1
+}
 
 export function BattlePage() {
   const [battleState, setBattleState] = useState(gameState)
   const [assignment, setAssignment] = useState<undefined | "player1" | "player2">(undefined)
+  const [player, setPlayer] = useState<undefined | Player>(undefined)
+
+  useEffect(() => {
+    const fetchPlayer = async () => {
+      try {
+        const res = await fetch(`http://${window.location.hostname}:5050/player`, { credentials: "include" })
+        if (!res.ok) {
+          const error = await res.text()
+          alert(error)
+          throw new Error(error)
+        }
+        const fetchedPlayer = await res.json() as unknown as Player
+        if (!fetchedPlayer.id) {
+          alert("Error with player data")
+          throw new Error("Error with player data")
+        }
+        setPlayer(fetchedPlayer)
+        setBattleState({ player1: fetchedPlayer, player2: dummyPlayer, turn: 1 })
+      } catch (error: any) {
+        console.log(error.toString())
+      }
+    }
+    fetchPlayer()
+  }, [])
+
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl,
     {
       share: true,
-      onOpen: () => {
-        sendJsonMessage({
-          type: "connect",
-          id: gameId,
-          payload: {
-            player: player.name,
-            playerData: player,
-          },
-        },
-        )
-      },
     }
   )
+
+  useEffect(() => {
+    if (readyState === ReadyState.OPEN && player) {
+      console.log("Sending connect event");
+      sendJsonMessage({
+        type: "connect",
+        id: gameId,
+        payload: {
+          player: player.name,
+          playerData: player,
+        },
+      });
+    }
+  }, [readyState, player, sendJsonMessage]);
+
   useEffect(() => {
     let message = lastJsonMessage as ServerMessage
     if (!message) return
-    console.log(message)
     switch (message.type) {
       case "assignment":
-        console.log(assignment)
         if (message.payload.message === "player1" || message.payload.message === "player2") {
           setAssignment(message.payload.message)
         }

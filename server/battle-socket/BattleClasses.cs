@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using static HelperFunctions;
 
 public class Player {
@@ -15,29 +16,34 @@ public class Player {
     public int sp;
     public int hp;
 
-    public Player(long playerId, string username, int lvl, int xpNumber, int maxSpNumber, int maxHpNumber, int xpForLevelUpNumber, int heldMoney, Dictionary<string, Fighter> ownedFighters, Dictionary<string, Item> ownedItems, Fighter selected, int spNumber, int hpNumber) {
-        id = playerId;
-        name = username;
-        level = lvl;
-        xp = xpNumber;
-        maxSp = maxSpNumber;
-        maxHp = maxHpNumber;
-        xpForLevelUp = xpForLevelUpNumber;
-        money = heldMoney;
-        fighters = ownedFighters;
-        inventory = ownedItems;
-        selectedFighter = selected;
-        sp = spNumber;
-        hp = hpNumber;
+    public Player(long id, string name, int level, int xp, int maxSp, int maxHp, int xpForLevelUp, int money, Dictionary<string, Fighter> fighters, Dictionary<string, Item> inventory, Fighter selectedFighter, int sp, int hp) {
+        this.id = id;
+        this.name = name;
+        this.level = level;
+        this.xp = xp;
+        this.maxSp = maxSp;
+        this.maxHp = maxHp;
+        this.xpForLevelUp = xpForLevelUp;
+        this.money = money;
+        this.fighters = fighters;
+        this.inventory = inventory;
+        this.selectedFighter = selectedFighter;
+        this.sp = sp;
+        this.hp = hp;
     }
 
     public string ToLevelUp {
         get => xp >= xpForLevelUp ? "Can level up!" : $"{xpForLevelUp - xp} XP until level up";
     }
+    [JsonIgnore]
     public Buffs buffs = new();
+    [JsonIgnore]
     public Buffs debuffs = new();
+    [JsonIgnore]
     public bool defending = false;
+    [JsonIgnore]
     public bool reflectingMagic = false;
+    [JsonIgnore]
     public bool reflectingPhysical = false;
 
     public bool LevelUp() {

@@ -25,7 +25,9 @@ public class BattleWebSocket {
             if (receiveResult.MessageType == WebSocketMessageType.Text) {
                 var jsonString = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
                 var message = JsonSerializer.Deserialize<SocketMessage>(jsonString, jsonOptions);
-                if (message == null) return;
+                if (message == null) {
+                    return;
+                }
                 sessionId = message.id;
                 switch (message.type) {
                     case "connect":

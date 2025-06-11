@@ -24,7 +24,7 @@ export function SignUpPage() {
             setMessage("Signing Up")
             setSigningUp(true)
             const res = await fetch(`http://${window.location.hostname}:5050/register`, { method: "POST", body: JSON.stringify(payload), headers: { "Content-type": "application/json" } })
-            if(!res.ok) {
+            if (!res.ok) {
                 setMessage(await res.text())
                 setSigningUp(false)
             }
@@ -32,7 +32,7 @@ export function SignUpPage() {
             setSigningUp(false)
             await login(username, password)
         } catch (error: any) {
-           console.log(error)
+            console.log(error)
             setSigningUp(false)
         }
     }
@@ -44,9 +44,6 @@ export function SignUpPage() {
             <form onSubmit={handleSignUp} className="signup-form">
                 <input type="text" className="username-input" value={username} placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
                 <input type="password" className="password-input" value={password} placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
-                <button className="submit-button" type="submit" disabled={signingUp || (!username && !password)}>
-                    Sign Up
-                </button>
                 <select name="fighters" id="fighter-select" className="fighter-select" onChange={(e) => setStarterFighter(e.target.value)}>
                     <option value="">Select a fighter</option>
                     <option value="fireGuy">FireGuy</option>
@@ -56,6 +53,10 @@ export function SignUpPage() {
                     <option value="lightningGuy">LightningGuy</option>
                     <option value="trashGuy">TrashGuy</option>
                 </select>
+                <button className="submit-button" type="submit" disabled={signingUp || !username || !password || !starterFighter}>
+                    Sign Up
+                </button>
+
             </form>
         </div>
     )
