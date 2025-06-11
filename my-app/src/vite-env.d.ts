@@ -56,7 +56,7 @@ interface GameState {
 }
 
 type Message = {
-    id: number,
+    id: string,
     type: "connect" | "action"
     payload: ConnectPayload | ActionPayload
 }

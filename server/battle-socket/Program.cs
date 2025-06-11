@@ -21,7 +21,12 @@ builder.Services.AddCors(options => {
     });
 });
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie();
+    .AddCookie(options => {
+        options.Events.OnRedirectToLogin = context => {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+    });
 builder.Services.AddAuthorization();
 
 builder.Services.AddRateLimiter(options => {
@@ -35,8 +40,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-
-var battleSessions = new ConcurrentDictionary<int, GameSession>();
+//Battle rooms
+var battleSessions = new ConcurrentDictionary<string, GameSession>();
+//Users connected
 var sessionConnections = new ConcurrentDictionary<string, SessionCache>();
 
 var webSocketOptions = new WebSocketOptions {
@@ -112,6 +118,27 @@ app.MapGet("/user", async (HttpContext context) => {
     return Results.Ok(safeUser);
 });
 
+app.MapGet("createroom", (HttpContext context) => {
+    var userIdString = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userIdString is null) {
+        return Results.BadRequest();
+    }
+    if (sessionConnections.TryGetValue(userIdString, out SessionCache? session)) {
+        return Results.Ok(session.id);
+    }
+    Guid id = Guid.NewGuid();
+    battleSessions.TryAdd(id.ToString(), new GameSession());
+    return Results.Ok(id.ToString());
+}).RequireAuthorization();
+
+app.MapGet("/battle/{roomId}", (string roomId) => {
+    if (battleSessions.ContainsKey(roomId)) {
+        return Results.Ok();
+    } else {
+        return Results.NotFound();
+    }
+}).RequireAuthorization();
+
 app.UseWebSockets(webSocketOptions);
 
 app.Use(async (context, next) => {
@@ -125,7 +152,9 @@ app.Use(async (context, next) => {
             }
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             if (sessionConnections.TryGetValue(cookieId, out SessionCache? session)) {
-                await BattleWebSocket.handleMessages(webSocket, context, true, session, battleSessions, sessionConnections, cookieId);
+                if (session.session.battle is not null) {
+                    await BattleWebSocket.handleMessages(webSocket, context, true, session, battleSessions, sessionConnections, cookieId);
+                }
             } else {
                 await BattleWebSocket.handleMessages(webSocket, context, null, null, battleSessions, sessionConnections, cookieId);
             }

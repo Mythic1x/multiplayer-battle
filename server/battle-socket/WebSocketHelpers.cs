@@ -6,7 +6,7 @@ public static class WebSocketHelpers {
         PropertyNameCaseInsensitive = true,
         IncludeFields = true
     };
-    public static async Task HandleConnect(WebSocket webSocket, SocketMessage message, ConcurrentDictionary<int, GameSession> battleSessions, HttpContext context, ConcurrentDictionary<string, SessionCache> sessionConnections, string cookieId) {
+    public static async Task HandleConnect(WebSocket webSocket, SocketMessage message, ConcurrentDictionary<string, GameSession> battleSessions, HttpContext context, ConcurrentDictionary<string, SessionCache> sessionConnections, string cookieId) {
         if (sessionConnections.TryGetValue(cookieId, out _)) {
             return;
         }
@@ -18,9 +18,8 @@ public static class WebSocketHelpers {
         if (playerData == null) return;
 
         if (!battleSessions.TryGetValue(message.id, out GameSession? session)) {
-            session = new GameSession();
-            battleSessions[message.id] = session;
-        } else if (session.connections.Count > 2) {
+            return;
+        } else if (session.players.Count > 2) {
             await session.SendErrorToClient("FullSession", "session is full", webSocket);
             return;
         }
@@ -31,7 +30,8 @@ public static class WebSocketHelpers {
             assignment = assignment,
             player = player,
             session = session,
-            lastSeen = DateTime.UtcNow
+            lastSeen = DateTime.UtcNow,
+            id = message.id
         };
         var messagePayload = new MessagePayload {
             message = $"{player} connected!"
@@ -72,7 +72,7 @@ public static class WebSocketHelpers {
         await session.session.SendToPlayer(reconnectMsg.ToJSON(), session.player);
         await session.session.Broadcast(reconnectAlertMessage.ToJSON());
     }
-    public static async Task HandleAction(SocketMessage message, ConcurrentDictionary<int, GameSession> battleSessions) {
+    public static async Task HandleAction(SocketMessage message, ConcurrentDictionary<string, GameSession> battleSessions) {
         var data = JsonSerializer.Deserialize<ActionPayload>(message.payload, jsonOptions);
         if (data == null) return;
         Battle? battle = battleSessions[message.id].battle;

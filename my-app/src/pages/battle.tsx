@@ -9,6 +9,7 @@ import { GameContext } from '../GameContext'
 import ItemMenu from '../components/ItemMenu'
 
 import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { useParams } from 'react-router-dom'
 
 const testFighter: Fighter = {
   strength: 10,
@@ -87,22 +88,32 @@ const dummyPlayer: Player = {
   },
 }
 
-
-export const gameId = 1
-
 export const socketUrl = `ws://${window.location.hostname}:5050/ws`
 const gameState: GameState = {
   player1: dummyPlayer,
   player2: dummyPlayer,
   turn: 1
 }
+export const gameId = "0"
 
 export function BattlePage() {
   const [battleState, setBattleState] = useState(gameState)
   const [assignment, setAssignment] = useState<undefined | "player1" | "player2">(undefined)
   const [player, setPlayer] = useState<undefined | Player>(undefined)
+  const [validRoom, setValidRoom] = useState(false)
+  const { roomId } = useParams<{ roomId: string }>()
+  if(!roomId) return
 
   useEffect(() => {
+    const checkRoomValidity = async (roomId: string) => {
+      const res = await fetch(`http://${window.location.hostname}:5050/battle/${roomId}`, { credentials: "include" })
+      if (res.ok) {
+        setValidRoom(true)
+        return true
+      } else {
+        throw new Error("Invalid room id")
+      }
+    }
     const fetchPlayer = async () => {
       try {
         const res = await fetch(`http://${window.location.hostname}:5050/player`, { credentials: "include" })
@@ -122,21 +133,28 @@ export function BattlePage() {
         console.log(error.toString())
       }
     }
-    fetchPlayer()
+
+    const setUpBattle = async () => {
+      const valid = await checkRoomValidity(roomId as string)
+      if(valid) {
+        await fetchPlayer()
+      }
+    }
+    setUpBattle()
   }, [])
 
-  const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(socketUrl,
+  
+  const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
+    player ? socketUrl : null,
     {
       share: true,
     }
   )
-
   useEffect(() => {
     if (readyState === ReadyState.OPEN && player) {
-      console.log("Sending connect event");
       sendJsonMessage({
         type: "connect",
-        id: gameId,
+        id: roomId,
         payload: {
           player: player.name,
           playerData: player,
@@ -186,12 +204,22 @@ export function BattlePage() {
     }
 
   }, [lastJsonMessage])
+
+
   const [itemsMenu, setShowItemsMenu] = useState(false)
   const [SkillsMenu, setShowSkillsMenu] = useState(false)
   const [fightersMenu, setShowFightersMenu] = useState(false)
   const [description, setDescription] = useState('')
   const { player1, player2, turn } = battleState
   const playerTurn = turn % 2 === 0 ? player2 : player1
+
+  if (!validRoom) {
+    return (
+      <div className="not-found">
+        Game session not found
+      </div>
+    )
+  }
 
 
   return (

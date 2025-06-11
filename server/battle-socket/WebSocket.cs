@@ -8,9 +8,9 @@ public class BattleWebSocket {
         PropertyNameCaseInsensitive = true,
         IncludeFields = true
     };
-    public static async Task handleMessages(WebSocket webSocket, HttpContext context, bool? reconnect, SessionCache? session, ConcurrentDictionary<int, GameSession> battleSessions, ConcurrentDictionary<string, SessionCache> sessionConnections, string cookieId) {
+    public static async Task handleMessages(WebSocket webSocket, HttpContext context, bool? reconnect, SessionCache? session, ConcurrentDictionary<string, GameSession> battleSessions, ConcurrentDictionary<string, SessionCache> sessionConnections, string cookieId) {
         var buffer = new byte[1024 * 4];
-        int sessionId = 0;
+        string? sessionId = null;
         var cts = new CancellationTokenSource();
         var receiveResult = await webSocket.ReceiveAsync(
             new ArraySegment<byte>(buffer), CancellationToken.None
@@ -25,7 +25,7 @@ public class BattleWebSocket {
             if (receiveResult.MessageType == WebSocketMessageType.Text) {
                 var jsonString = Encoding.UTF8.GetString(buffer, 0, receiveResult.Count);
                 var message = JsonSerializer.Deserialize<SocketMessage>(jsonString, jsonOptions);
-                if (message == null) {
+                if (message is null || message.id is null) {
                     return;
                 }
                 sessionId = message.id;
@@ -50,7 +50,7 @@ public class BattleWebSocket {
             receiveResult.CloseStatusDescription,
             CancellationToken.None
         );
-
+        if (sessionId is null) return;
         if (battleSessions.TryGetValue(sessionId, out var currentSession)) {
             var key = currentSession.connections.FirstOrDefault(kvp => kvp.Value == webSocket).Key;
             if (key != null) {
@@ -92,11 +92,12 @@ public record SessionCache {
     public required string assignment;
     public required string player;
     public required GameSession session;
+    public required string id;
     public DateTime lastSeen;
 }
 
 public record SocketMessage {
-    public int id;
+    public required string id;
     public required string type;
     public JsonElement payload;
 }
