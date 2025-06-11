@@ -9,7 +9,7 @@ import { GameContext } from '../GameContext'
 import ItemMenu from '../components/ItemMenu'
 
 import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const testFighter: Fighter = {
   strength: 10,
@@ -102,6 +102,7 @@ export function BattlePage() {
   const [player, setPlayer] = useState<undefined | Player>(undefined)
   const [validRoom, setValidRoom] = useState(false)
   const { roomId } = useParams<{ roomId: string }>()
+  const navigate = useNavigate()
   if(!roomId) return
 
   useEffect(() => {
@@ -192,8 +193,8 @@ export function BattlePage() {
         setDescription(message.payload.message)
         setBattleState(message.payload.state)
         setTimeout(() => {
-          alert(`${message.payload.winner} has beaten ${message.payload.loser} before euro beat clannad! click ok to refresh and rematch`)
-          location.reload()
+          alert(`${message.payload.winner} has beaten ${message.payload.loser}`)
+          navigate("/")
         }, 2000)
         break;
       case "reconnect":
