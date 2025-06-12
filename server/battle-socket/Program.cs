@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.Eventing.Reader;
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.RateLimiting;
@@ -118,6 +119,19 @@ app.MapGet("/user", async (HttpContext context) => {
     return Results.Ok(safeUser);
 });
 
+app.MapGet("/get-fighters", () => {
+    Results.Ok(Database.Fighters);
+});
+
+app.MapPost("get-fighter", (FighterRequestData data) => {
+    var fighter = Database.GetFighterByName(data.name);
+    if (fighter is not null) {
+        Results.Ok(fighter);
+    } else {
+        Results.NotFound("Fighter not found");
+    }
+});
+
 app.MapGet("createroom", (HttpContext context) => {
     var userIdString = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userIdString is null) {
@@ -131,7 +145,14 @@ app.MapGet("createroom", (HttpContext context) => {
     return Results.Ok(id.ToString());
 }).RequireAuthorization();
 
-app.MapGet("/battle/{roomId}", (string roomId) => {
+app.MapGet("/battle/{roomId}", (HttpContext context, string roomId) => {
+    var userIdString = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userIdString is null) {
+        return Results.BadRequest();
+    }
+    if (sessionConnections.TryGetValue(userIdString, out SessionCache? session)) {
+        return Results.Redirect($"/battle/{session.id}");
+    }
     if (battleSessions.ContainsKey(roomId)) {
         return Results.Ok();
     } else {
@@ -165,10 +186,13 @@ app.Use(async (context, next) => {
         await next(context);
     }
 });
-
+//initialize tables and fighter/skill data
 await Database.InitializeDatabase();
+
+
 await app.RunAsync();
 record RegisterData(string username, string password, string starterFighter);
 record LoginData(string username, string password);
+record FighterRequestData(string name);
 record SafeUser(string username);
 

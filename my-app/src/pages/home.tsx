@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
-import { useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 export function HomePage() {
     const { user, logout, isAuthenticated } = useAuth()
     const [creatingRoom, setCreatingRoom] = useState(false)
+    const [roomCode, setRoomCode] = useState('')
     const navigate = useNavigate()
+    const dialog = useRef<HTMLDialogElement | null>(null)
     async function createBattleRoom() {
         try {
             setCreatingRoom(true)
@@ -23,6 +25,12 @@ export function HomePage() {
         }
     }
 
+    function handleJoinRoom(e: FormEvent) {
+        e.preventDefault()
+        dialog.current?.close()
+        navigate(`/battle/${roomCode}`)
+    }
+
     return (
         <div className="home">
             {!isAuthenticated ?
@@ -37,9 +45,22 @@ export function HomePage() {
                     <h1 className="welcome-text">Welcome {user!.username}!</h1>
                     <div className="logged-in-container">
                         <button className="battle-button" onClick={createBattleRoom} disabled={creatingRoom}>Battle</button>
+                        <button className="join-button" onClick={() => dialog.current?.showModal()}>Join Room</button>
                         <button className="logout-button" onClick={() => {
                             logout()
                         }}>Log Out</button>
+                        <dialog className="join-room" ref={dialog} onClick={(e) => {
+                            if(e.target === dialog.current) dialog.current?.close()
+                        }}>
+                            <form onSubmit={handleJoinRoom} className="join-room-form">
+                                <input type="text" value={roomCode} placeholder="Enter Room Code" onChange={(e) => setRoomCode(e.target.value)} />
+                                <div className="dialog-button-container">
+                                    <button className="dialog-buttons" type="submit" disabled={!roomCode}>Join Room</button>
+                                    <button className="dialog-buttons" type="button" onClick={() => dialog.current?.close()}>Close</button>
+                                </div>
+
+                            </form>
+                        </dialog>
                     </div>
                 </>}
         </div>

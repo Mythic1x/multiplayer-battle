@@ -401,4 +401,34 @@ button {
   color: #007bff;
 }
 
+/* Style for the dialog element */
+.join-room {
+  background: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 300px;
+}
+
+/* This targets the overlay that appears behind the dialog */
+.join-room::backdrop {
+  background-color: rgba(0, 0, 0, 0.7);
+  /* A nice blur effect for a modern look */
+  backdrop-filter: blur(4px);
+}
+
+.join-room-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.dialog-button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+}
+
 /*# sourceMappingURL=App.css.map */
