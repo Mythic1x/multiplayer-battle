@@ -1,7 +1,7 @@
 import { createContext, useContext, } from "react";
 import { Player } from "./vite-env";
 
-export const GameContext = createContext<{ player: Player, turn: number, playerTurn: Player } | undefined>(undefined)
+export const GameContext = createContext<{ player: Player, turn: number, playerTurn: Player, roomId: string } | undefined>(undefined)
 
 //export function GameContextProvider({ children, player }: { children: ReactNode, player: "player1" | "player2" }) {
 //

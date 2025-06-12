@@ -3,8 +3,9 @@ import { ActionPayload, Fighter, Message, Player } from "../vite-env"
 import { useState, useRef, useEffect, useContext, act } from "react"
 import { useGameState } from "../GameContext"
 import useWebSocket from "react-use-websocket"
-import { gameId, socketUrl } from "../pages/battle.tsx"
+import { socketUrl } from "../pages/battle.tsx"
 import { SendJsonMessage } from "react-use-websocket/dist/lib/types"
+import { useParams } from "react-router-dom"
 
 
 interface Props {
@@ -68,31 +69,31 @@ function BattleStats({ health, sp, showFightersMenu, showSkillsMenu, showItemsMe
 }
 
 function AttackButton({ sendJsonMessage }: { sendJsonMessage: SendJsonMessage }) {
-    const { player, turn, playerTurn } = useGameState()
+    const { player, turn, playerTurn, roomId } = useGameState()
     return (
         <button className="attack" style={{ backgroundColor: "#B91C1C" }} onClick={() => {
-            const payload = handleAttackOrDefend(player, playerTurn, "attack")
+            const payload = handleAttackOrDefend(player, playerTurn, "attack", roomId)
             sendJsonMessage(payload)
         }} disabled={player !== playerTurn}>Attack</button>
     )
 }
 
 function DefendButton({ sendJsonMessage }: { sendJsonMessage: SendJsonMessage }) {
-    const { player, turn, playerTurn } = useGameState()
+    const { player, turn, playerTurn, roomId } = useGameState()
     return (
         <button className="defend" style={{ backgroundColor: "#059669" }} onClick={() => {
-            const payload = handleAttackOrDefend(player, playerTurn, "defend")
+            const payload = handleAttackOrDefend(player, playerTurn, "defend", roomId)
             sendJsonMessage(payload)
         }} disabled={player !== playerTurn}>Defend</button>
     )
 }
 
-function handleAttackOrDefend(player: Player, playerTurn: Player, type: "attack" | "defend") {
+function handleAttackOrDefend(player: Player, playerTurn: Player, type: "attack" | "defend", roomId: string) {
     if (player !== playerTurn) {
         return alert("not your turn stop cheating")
     }
     const actionPayload: Message = {
-        id: gameId,
+        id: roomId,
         type: "action",
         payload: {
             action: type

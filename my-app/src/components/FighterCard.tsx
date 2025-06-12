@@ -2,26 +2,26 @@
 import useWebSocket from "react-use-websocket"
 import { useGameState } from "../GameContext"
 import { ActionPayload, Fighter, Message } from "../vite-env"
-import { gameId, socketUrl } from "../pages/battle.tsx"
+import { socketUrl } from "../pages/battle.tsx"
 
 
 interface Props {
     fighter: Fighter
-    showFightersMenu: React.Dispatch<React.SetStateAction<boolean>> 
+    showFightersMenu: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 
 
 function FighterCard({ fighter, showFightersMenu }: Props) {
-    const { sendJsonMessage } = useWebSocket(socketUrl, {share: true})
-    const { player, turn, playerTurn } = useGameState()
+    const { sendJsonMessage } = useWebSocket(socketUrl, { share: true })
+    const { player, turn, playerTurn, roomId } = useGameState()
     return (
         <>
             <button className="fighter-card" onClick={() => {
-                const payload = handleSelectFighter(fighter)
+                const payload = handleSelectFighter(fighter, roomId)
                 sendJsonMessage(payload)
                 showFightersMenu(false)
-             }}
+            }}
                 disabled={player !== playerTurn} style={player !== playerTurn ? { cursor: "not-allowed" } : undefined}>
                 <div className="fighter-info-container">
                     <img src={fighter.image} className="fighter-pic" />
@@ -39,13 +39,13 @@ function FighterCard({ fighter, showFightersMenu }: Props) {
     )
 }
 
-function handleSelectFighter(fighter: Fighter) {
+function handleSelectFighter(fighter: Fighter, roomId: string) {
     const payload: ActionPayload = {
         action: "selectFighter",
         fighter: fighter.name
     }
     const message: Message = {
-        id: gameId,
+        id: roomId,
         type: "action",
         payload: payload
     }

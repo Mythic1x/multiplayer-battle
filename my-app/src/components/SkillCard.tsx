@@ -2,7 +2,7 @@
 import useWebSocket from "react-use-websocket"
 import { useGameState } from "../GameContext"
 import { ActionPayload, Message, Skill } from "../vite-env"
-import { gameId, socketUrl } from "../pages/battle.tsx"
+import { socketUrl } from "../pages/battle.tsx"
 
 interface Props {
     skill: Skill
@@ -12,8 +12,8 @@ interface Props {
 }
 
 function SkillCard({ skill, sp, hp, showSkillsMenu }: Props) {
-    const { sendJsonMessage } = useWebSocket(socketUrl, {share: true})
-    const { player, turn, playerTurn } = useGameState()
+    const { sendJsonMessage } = useWebSocket(socketUrl, { share: true })
+    const { player, turn, playerTurn, roomId } = useGameState()
     const resource = skill.type === "magic"
         ? { cost: skill.spCost, pool: sp, poolName: "SP" }
         : { cost: skill.hpCost, pool: hp, poolName: "HP" }
@@ -22,7 +22,7 @@ function SkillCard({ skill, sp, hp, showSkillsMenu }: Props) {
     return (
         <>
             <button className="skill-card" disabled={invalid} style={invalid ? { cursor: "not-allowed" } : undefined} title={skill.description} onClick={() => {
-                const payload = handleSkill(skill)
+                const payload = handleSkill(skill, roomId)
                 sendJsonMessage(payload)
                 showSkillsMenu(false)
             }}>
@@ -33,13 +33,13 @@ function SkillCard({ skill, sp, hp, showSkillsMenu }: Props) {
     )
 }
 
-function handleSkill(skill: Skill) {
+function handleSkill(skill: Skill, roomId: string) {
     const payload: ActionPayload = {
         action: "useSkill",
         skill: skill.name
     }
     const message: Message = {
-        id: gameId,
+        id: roomId,
         type: "action",
         payload: payload
     }

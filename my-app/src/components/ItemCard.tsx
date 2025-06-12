@@ -2,21 +2,21 @@
 import useWebSocket from "react-use-websocket"
 import { useGameState } from "../GameContext"
 import { ActionPayload, Item, Message } from "../vite-env"
-import { gameId, socketUrl } from "../pages/battle.tsx"
+import { socketUrl } from "../pages/battle.tsx"
 
 interface Props {
     item: Item
-    showItemsMenu: React.Dispatch<React.SetStateAction<boolean>> 
+    showItemsMenu: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 function ItemCard({ item, showItemsMenu }: Props) {
     const { sendJsonMessage } = useWebSocket(socketUrl, { share: true })
-    const { player, turn, playerTurn } = useGameState()
+    const { player, turn, playerTurn, roomId } = useGameState()
     const invalid = (item.owned <= 0 || player !== playerTurn)
     return (
         <>
             <button className="item-card" onClick={() => {
-                const payload = HandleItem(item)
+                const payload = HandleItem(item, roomId)
                 sendJsonMessage(payload)
                 showItemsMenu(false)
             }} disabled={invalid} style={invalid ? { cursor: "not-allowed" } : undefined}>
@@ -28,13 +28,13 @@ function ItemCard({ item, showItemsMenu }: Props) {
     )
 }
 
-function HandleItem(item: Item) {
+function HandleItem(item: Item, roomId: string) {
     const payload: ActionPayload = {
         action: "useItem",
         item: item.name
     }
     const message: Message = {
-        id: gameId,
+        id: roomId,
         type: "action",
         payload: payload
     }

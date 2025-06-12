@@ -94,15 +94,15 @@ const gameState: GameState = {
   player2: dummyPlayer,
   turn: 1
 }
-export const gameId = "0"
+
 
 export function BattlePage() {
   const [battleState, setBattleState] = useState(gameState)
   const [assignment, setAssignment] = useState<undefined | "player1" | "player2">(undefined)
   const [player, setPlayer] = useState<undefined | Player>(undefined)
   const [validRoom, setValidRoom] = useState(false)
-  const { roomId } = useParams<{ roomId: string }>()
   const navigate = useNavigate()
+  const { roomId } = useParams<{ roomId: string }>()
   if(!roomId) return
 
   useEffect(() => {
@@ -230,7 +230,7 @@ export function BattlePage() {
         <span className="description">{description}</span>
       </div>
       <div className="stats-wrapper">
-        <GameContext.Provider value={{ player: player1, turn: turn, playerTurn: playerTurn, }}>
+        <GameContext.Provider value={{ player: player1, turn: turn, playerTurn: playerTurn, roomId: roomId }}>
           <div className="p1-container">
             {(assignment === "player1" || !assignment)
               ?
@@ -252,7 +252,7 @@ export function BattlePage() {
             </div>
           </div>
         </GameContext.Provider>
-        <GameContext.Provider value={{ player: player2, turn: turn, playerTurn: playerTurn, }}>
+        <GameContext.Provider value={{ player: player2, turn: turn, playerTurn: playerTurn, roomId: roomId }}>
           <div className="p2-container">
             {assignment === "player2"
               ?
