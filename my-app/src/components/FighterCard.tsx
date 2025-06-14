@@ -14,7 +14,7 @@ interface Props {
 
 function FighterCard({ fighter, showFightersMenu }: Props) {
     const { sendJsonMessage } = useWebSocket(socketUrl, { share: true })
-    const { player, turn, playerTurn, roomId } = useGameState()
+    const { player, playerTurn, roomId } = useGameState()
     return (
         <>
             <button className="fighter-card" onClick={() => {

@@ -13,7 +13,7 @@ interface Props {
 
 function SkillCard({ skill, sp, hp, showSkillsMenu }: Props) {
     const { sendJsonMessage } = useWebSocket(socketUrl, { share: true })
-    const { player, turn, playerTurn, roomId } = useGameState()
+    const { player, playerTurn, roomId } = useGameState()
     const resource = skill.type === "magic"
         ? { cost: skill.spCost, pool: sp, poolName: "SP" }
         : { cost: skill.hpCost, pool: hp, poolName: "HP" }

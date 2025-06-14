@@ -11,7 +11,7 @@ interface Props {
 
 function ItemCard({ item, showItemsMenu }: Props) {
     const { sendJsonMessage } = useWebSocket(socketUrl, { share: true })
-    const { player, turn, playerTurn, roomId } = useGameState()
+    const { player, playerTurn, roomId } = useGameState()
     const invalid = (item.owned <= 0 || player !== playerTurn)
     return (
         <>

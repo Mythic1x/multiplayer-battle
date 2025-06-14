@@ -8,7 +8,7 @@ export interface Fighter {
     magic: number
     luck: number
     image: string
-    skills: Record<string, skill>
+    skills: Record<string, Skill>
     level: number
     name: string
     type: FighterType
@@ -46,7 +46,7 @@ interface Player {
 
 interface User {
     username: string
-    //placeholder
+    id: string
 }
 
 interface GameState {

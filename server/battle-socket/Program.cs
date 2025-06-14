@@ -85,7 +85,7 @@ app.MapPost("/login", async (LoginData data, HttpContext context) => {
         AllowRefresh = true
     };
     await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-    var userInfo = new SafeUser(user.username);
+    var userInfo = new SafeUser(user.username, user.id.ToString());
     return Results.Ok(userInfo);
 }).RequireRateLimiting("login");
 
@@ -115,7 +115,7 @@ app.MapGet("/user", async (HttpContext context) => {
     if (user is null) {
         return Results.InternalServerError("Error getting player data");
     }
-    var safeUser = new SafeUser(user.username);
+    var safeUser = new SafeUser(user.username, user.id.ToString());
     return Results.Ok(safeUser);
 });
 
@@ -130,6 +130,17 @@ app.MapPost("get-fighter", (FighterRequestData data) => {
     } else {
         Results.NotFound("Fighter not found");
     }
+});
+
+app.MapPost("get-player", async (RequestPlayerData data) => {
+    if (!long.TryParse(data.id, out long id)) {
+        Results.BadRequest("Invalid id provided");
+    }
+    var player = await Database.GetPlayerById(id);
+    if (player is null) {
+        return Results.NotFound("Player not found");
+    }
+    return Results.Ok(player);
 });
 
 app.MapGet("createroom", (HttpContext context) => {
@@ -151,7 +162,9 @@ app.MapGet("/battle/{roomId}", (HttpContext context, string roomId) => {
         return Results.BadRequest();
     }
     if (sessionConnections.TryGetValue(userIdString, out SessionCache? session)) {
-        return Results.Redirect($"/battle/{session.id}");
+        if (session.id != roomId) {
+            return Results.Redirect($"/battle/{session.id}");
+        }
     }
     if (battleSessions.ContainsKey(roomId)) {
         return Results.Ok();
@@ -194,5 +207,6 @@ await app.RunAsync();
 record RegisterData(string username, string password, string starterFighter);
 record LoginData(string username, string password);
 record FighterRequestData(string name);
-record SafeUser(string username);
+record SafeUser(string username, string id);
+record RequestPlayerData(string id);
 

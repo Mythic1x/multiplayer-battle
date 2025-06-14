@@ -10,6 +10,7 @@ import ItemMenu from '../components/ItemMenu'
 
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useNavigate, useParams } from 'react-router-dom'
+import Loading from '../components/Loading'
 
 const testFighter: Fighter = {
   strength: 10,
@@ -100,10 +101,11 @@ export function BattlePage() {
   const [battleState, setBattleState] = useState(gameState)
   const [assignment, setAssignment] = useState<undefined | "player1" | "player2">(undefined)
   const [player, setPlayer] = useState<undefined | Player>(undefined)
+  const [loading, setLoading] = useState(true)
   const [validRoom, setValidRoom] = useState(false)
   const navigate = useNavigate()
   const { roomId } = useParams<{ roomId: string }>()
-  if(!roomId) return
+  if (!roomId) return
 
   useEffect(() => {
     const checkRoomValidity = async (roomId: string) => {
@@ -112,6 +114,7 @@ export function BattlePage() {
         setValidRoom(true)
         return true
       } else {
+        setLoading(false)
         throw new Error("Invalid room id")
       }
     }
@@ -120,31 +123,32 @@ export function BattlePage() {
         const res = await fetch(`http://${window.location.hostname}:5050/player`, { credentials: "include" })
         if (!res.ok) {
           const error = await res.text()
-          alert(error)
           throw new Error(error)
         }
         const fetchedPlayer = await res.json() as unknown as Player
         if (!fetchedPlayer.id) {
-          alert("Error with player data")
           throw new Error("Error with player data")
         }
         setPlayer(fetchedPlayer)
         setBattleState({ player1: fetchedPlayer, player2: dummyPlayer, turn: 1 })
+        setLoading(false)
       } catch (error: any) {
+        setLoading(false)
+        alert(error.toString())
         console.log(error.toString())
       }
     }
 
     const setUpBattle = async () => {
       const valid = await checkRoomValidity(roomId as string)
-      if(valid) {
+      if (valid) {
         await fetchPlayer()
       }
     }
     setUpBattle()
   }, [])
 
-  
+
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
     player ? socketUrl : null,
     {
@@ -214,6 +218,11 @@ export function BattlePage() {
   const { player1, player2, turn } = battleState
   const playerTurn = turn % 2 === 0 ? player2 : player1
 
+  if (loading) {
+    return <Loading></Loading>
+  }
+
+  
   if (!validRoom) {
     return (
       <div className="not-found">
@@ -222,6 +231,7 @@ export function BattlePage() {
     )
   }
 
+  
 
   return (
     <>

@@ -62,9 +62,7 @@ public class BattleWebSocket {
                 await currentSession.Broadcast(message.ToJSON());
             }
             if (currentSession.connections.IsEmpty) {
-                battleSessions.TryRemove(sessionId, out _);
                 sessionConnections.TryRemove(cookieId, out _);
-                return;
             }
         }
 
@@ -73,6 +71,10 @@ public class BattleWebSocket {
             await delayDeletion;
             sessionConnections.TryRemove(cookieId, out _);
             if (currentSession is not null) {
+                if (currentSession.connections.IsEmpty) {
+                    battleSessions.TryRemove(sessionId, out _);
+                    return;
+                }
                 var messagePayload = new MessagePayload {
                     message = $"Opponent has forfeit. Ending session"
                 };

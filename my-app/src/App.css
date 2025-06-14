@@ -51,6 +51,9 @@
 button {
   cursor: pointer;
 }
+button:disabled {
+  cursor: not-allowed;
+}
 
 .button-container {
   display: flex;
@@ -69,6 +72,9 @@ button {
 }
 .button-container button:hover {
   transform: scale(1.05);
+}
+.button-container button:disabled:hover {
+  transform: scale(1);
 }
 .button-container button:active {
   transform: scale(1);
@@ -213,8 +219,10 @@ button {
 }
 .logged-in-container .battle-button,
 .logged-in-container .sign-up-button,
+.logged-in-container .join-button,
 .guest-container .battle-button,
-.guest-container .sign-up-button {
+.guest-container .sign-up-button,
+.guest-container .join-button {
   background-color: hotpink;
   border: none;
   border-radius: 5px;
@@ -429,6 +437,50 @@ button {
   flex-direction: row;
   gap: 10px;
   justify-content: center;
+}
+
+.spinner {
+  border: 16px solid #f3f3f3;
+  /* Light grey */
+  border-top: 16px solid #3498db;
+  /* Blue */
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 90vh;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.fighters-list-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 90vh;
+}
+
+.fighter-profile-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 38%;
+  left: 55%;
 }
 
 /*# sourceMappingURL=App.css.map */

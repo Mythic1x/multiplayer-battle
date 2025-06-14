@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { User } from "./vite-env";
 import { useNavigate } from "react-router-dom";
+import Loading from "./components/Loading";
 type AuthContextType = {
     user: User | undefined;
     login: (username: string, password: string) => Promise<void>
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (loading) {
         return (
-            <div className="loading">Loading...</div>
+            <Loading></Loading>
         )
     }
     return (
